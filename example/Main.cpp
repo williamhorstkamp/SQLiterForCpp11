@@ -3,6 +3,7 @@
 #include <fstream>
 #include <cstddef>
 
+using namespace SQLiter;
 int main(int argc, char *argv[])
 {
     SQLiteHandler db("test.db3");  //makes an SQLite3 database named test.db3 if it doesn't exist, opens it either way
