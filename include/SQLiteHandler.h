@@ -3,7 +3,7 @@
  *  Provides a portable SQLite3 interface to be used with the StatementHandler
  *
  *  @author William Horstkamp
- *  @version 0.5
+ *  @version 0.6
  */
 #include <sqlite3.h>
 #include <string>
@@ -174,6 +174,44 @@ public:
      *  expected.
      */
     void result(const int resCode);
+
+    /**
+     *  Creates a scalar SQLite function using a set of C/C++ functions
+     *
+     *  @param name - Pointer to null terminated c string containing the
+     *      function  name
+     *  @param nArg - Number of arguments that that SQL function takes
+     *  @param pApp - Arbitary pointer that can be used by the function calls
+     *  @param xFunc - Function that is called on the input given by SQLite
+     *  @param xDestroy - Destructor for pApp
+     */
+    void scalarFunction(const char *name, int nArg, void *pApp,
+        void(*xFunc)(sqlite3_context*, int, sqlite3_value**),
+        void(*xDestroy)(void*));
+
+    /**
+     *  Creates an aggregate SQLite function using a set of C/C++ functions
+     *
+     *  @param name - Pointer to null terminated c string containing the
+     *      function  name
+     *  @param nArg - Number of arguments that that SQL function takes
+     *  @param pApp - Arbitary pointer that can be used by the function calls
+     *  @param xStep - Function called on input given by SQLite for each row
+     *  @param xFinal - Function to finalize aggregate
+     *  @param xDestroy - Destructor for pApp
+     */
+    void aggregateFunction(const char *name, int nArg, void *pApp,
+        void(*xStep)(sqlite3_context*, int, sqlite3_value**),
+        void(*xFinal)(sqlite3_context*),
+        void(*xDestroy)(void*));
+
+    /**
+     *  Function deletes a user created function by name
+     *
+     *  @param name - Pointer to null terminated c string containing function
+     *      name to delete
+     */
+    void deleteFunction(const char *name);
 };
 
 #endif

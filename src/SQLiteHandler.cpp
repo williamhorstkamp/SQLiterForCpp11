@@ -3,7 +3,7 @@
 *  Provides a portable SQLite3 interface to be used with the StatementHandler
 *
 *  @author William Horstkamp
-*  @version 0.5
+*  @version 0.6
 */
 
 /**
@@ -93,4 +93,21 @@ int SQLiteHandler::rawExec(const char *stmtStr) {
 void SQLiteHandler::result(const int resCode) {
     if (resCode != SQLITE_OK)
         throw SQLiteException(sqlite3_errmsg(db.get()));
+}
+
+void SQLiteHandler::scalarFunction(const char *name, int nArg, void *pApp,
+    void(*xFunc)(sqlite3_context*, int, sqlite3_value**),
+    void(*xDestroy)(void*)) {
+    sqlite3_create_function_v2(db.get(), name, nArg, SQLITE_UTF8, pApp, xFunc, NULL, NULL, xDestroy);
+}
+
+void SQLiteHandler::aggregateFunction(const char *name, int nArg, void *pApp,
+    void(*xStep)(sqlite3_context*, int, sqlite3_value**),
+    void(*xFinal)(sqlite3_context*),
+    void(*xDestroy)(void*)) {
+    sqlite3_create_function_v2(db.get(), name, nArg, SQLITE_UTF8, pApp, NULL, xStep, xFinal, xDestroy);
+}
+
+void SQLiteHandler::deleteFunction(const char*name) {
+    sqlite3_create_function_v2(db.get(), name, NULL, SQLITE_UTF8, NULL, NULL, NULL, NULL, NULL);
 }
