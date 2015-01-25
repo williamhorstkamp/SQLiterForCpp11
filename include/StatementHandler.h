@@ -251,5 +251,37 @@ namespace SQLiter {
          *  and to clear bindings are different functions in their entirety.
          */
         void clear();
+
+        /**
+         *  Function for counting the number of columns returned by
+         *  prepared statement.
+         *
+         *  @return - number of columns returned by the statement
+         */
+        int columnCount();
+
+        /**
+         *  Returns the name of the database the statement column is from
+         *
+         *  @return - Pointer to null terminated C String containing database
+         *      name.
+         */
+        const char *databaseName(int col);
+
+        /**
+         *  Returns the name of the table the statement column is from
+         *
+         *  @return - Pointer to null terminated C String containing name of
+         *      the table.
+         */
+        const char *tableName(int col);
+
+        /**
+        *  Returns the name of the column the statement column is from
+        *
+        *  @return - Pointer to null terminated C String containing column
+        *      name.
+        */
+        const char *columnName(int col);
     };
 }

@@ -116,4 +116,20 @@ namespace SQLiter {
     void StatementHandler::clear() {
         sqlite3_clear_bindings(stmt.get());
     }
+
+    int StatementHandler::columnCount() {
+        return sqlite3_column_count(stmt.get());
+    }
+
+    const char *StatementHandler::databaseName(int col) {
+        return sqlite3_column_database_name(stmt.get(), col);
+    }
+
+    const char *StatementHandler::tableName(int col) {
+        return sqlite3_column_table_name(stmt.get(), col);
+    }
+
+    const char *StatementHandler::columnName(int col) {
+        return sqlite3_column_origin_name(stmt.get(), col);
+    }
 }
