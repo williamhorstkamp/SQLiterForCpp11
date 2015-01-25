@@ -35,83 +35,101 @@
 #include "SQLiteException.h"
 #include "StatementHandler.h"
 
-StatementHandler::~StatementHandler() {
-    stmt.reset();
+namespace SQLiter {
+
+    StatementHandler::~StatementHandler() {
+        stmt.reset();
+    }
+
+    StatementHandler::StatementHandler(sqlite3 *db, const char *stmtStr) {
+        sqlite3_stmt *prepStmt;
+        sqlite3_prepare_v2(db, stmtStr, strlen(stmtStr), &prepStmt, nullptr);
+        stmt = std::unique_ptr<sqlite3_stmt, Closesqlite3_stmt>(prepStmt);
+    }
+
+    void StatementHandler::bind(const int var, const char *input) {
+        sqlite3_bind_text(stmt.get(), var, input, strlen(input), SQLITE_TRANSIENT);
+    }
+
+    void StatementHandler::bind(const int var, const int input) {
+        sqlite3_bind_int(stmt.get(), var, input);
+    }
+
+    void StatementHandler::bind(const int var, const double input) {
+        sqlite3_bind_double(stmt.get(), var, input);
+    }
+
+    void StatementHandler::bind(const int var, const void *input, const int size) {
+        sqlite3_bind_blob(stmt.get(), var, input, size, SQLITE_TRANSIENT);
+    }
+
+    void StatementHandler::bindNull(const int var) {
+        sqlite3_bind_null(stmt.get(), var);
+    }
+
+    const int StatementHandler::getType(const int column) {
+        int typeNum = sqlite3_column_type(stmt.get(), column);
+        return (typeNum >= SQLITE_INTEGER && typeNum <= SQLITE_NULL ? typeNum : 0);
+    }
+
+    const int StatementHandler::getSize(const int column) {
+        return sqlite3_column_bytes(stmt.get(), column);
+    }
+
+    std::string StatementHandler::getString(const int column) {
+        if (getType(column) == SQLITE_TEXT) {
+            return std::string((char *)sqlite3_column_text(stmt.get(), column));
+        } throw SQLiteException("Column doesn't contain a string");
+    }
+
+    int StatementHandler::getInt(const int column) {
+        if (getType(column) == SQLITE_INTEGER) {
+            return sqlite3_column_int(stmt.get(), column);
+        } throw SQLiteException("Column doesn't contain a int");
+    }
+
+    double StatementHandler::getDouble(const int column) {
+        if (getType(column) == SQLITE_FLOAT) {
+            return sqlite3_column_double(stmt.get(), column);
+
+        } throw SQLiteException("Column doesn't contain a float");
+    }
+
+    const void *StatementHandler::getBlob(const int column) {
+        if (getType(column) == SQLITE_BLOB) {
+            return sqlite3_column_blob(stmt.get(), column);
+        } throw SQLiteException("Column doesn't contain a blob");
+    }
+
+    ValueHandler StatementHandler::getColumn(const int column) {
+        return ValueHandler(stmt.get(), column);
+    }
+
+    bool StatementHandler::step() {
+        return (sqlite3_step(stmt.get()) == SQLITE_ROW);
+    }
+
+    void StatementHandler::reset() {
+        sqlite3_reset(stmt.get());
+    }
+
+    void StatementHandler::clear() {
+        sqlite3_clear_bindings(stmt.get());
+    }
+
+    int StatementHandler::columnCount() {
+        return sqlite3_column_count(stmt.get());
+    }
+
+    const char *StatementHandler::databaseName(int col) {
+        return sqlite3_column_database_name(stmt.get(), col);
+    }
+
+    const char *StatementHandler::tableName(int col) {
+        return sqlite3_column_table_name(stmt.get(), col);
+    }
+
+    const char *StatementHandler::columnName(int col) {
+        return sqlite3_column_origin_name(stmt.get(), col);
+    }
 }
-
-StatementHandler::StatementHandler(sqlite3 *db, const char *stmtStr) {
-    sqlite3_stmt *prepStmt;
-    sqlite3_prepare_v2(db, stmtStr, strlen(stmtStr), &prepStmt, nullptr);
-    stmt = std::unique_ptr<sqlite3_stmt, Closesqlite3_stmt>(prepStmt);
-}
-
-void StatementHandler::bind(const int var, const char *input) {
-    sqlite3_bind_text(stmt.get(), var, input, strlen(input), SQLITE_TRANSIENT);
-}
-
-void StatementHandler::bind(const int var, const int input) {
-    sqlite3_bind_int(stmt.get(), var, input);
-}
-
-void StatementHandler::bind(const int var, const double input) {
-    sqlite3_bind_double(stmt.get(), var, input);
-}
-
-void StatementHandler::bind(const int var, const void *input, const int size) {
-    sqlite3_bind_blob(stmt.get(), var, input, size, SQLITE_TRANSIENT);
-}
-
-void StatementHandler::bindNull(const int var) {
-    sqlite3_bind_null(stmt.get(), var);
-}
-
-const int StatementHandler::getType(const int column) {
-    int typeNum = sqlite3_column_type(stmt.get(), column);
-    return (typeNum >= SQLITE_INTEGER && typeNum <= SQLITE_NULL ? typeNum : 0);
-}
-
-const int StatementHandler::getSize(const int column) {
-    return sqlite3_column_bytes(stmt.get(), column);
-}
-
-std::string StatementHandler::getString(const int column) {
-    if (getType(column) == SQLITE_TEXT) { 
-        return std::string((char *)sqlite3_column_text(stmt.get(), column));
-    } throw SQLiteException("Column doesn't contain a string");
-}
-
-int StatementHandler::getInt(const int column) {
-    if (getType(column) == SQLITE_INTEGER) {
-        return sqlite3_column_int(stmt.get(), column);
-    } throw SQLiteException("Column doesn't contain a int");
-}
-
-double StatementHandler::getDouble(const int column) {
-    if (getType(column) == SQLITE_FLOAT) {
-        return sqlite3_column_double(stmt.get(), column);
-        
-    } throw SQLiteException("Column doesn't contain a float");
-}
-
-const void *StatementHandler::getBlob(const int column) {
-    if (getType(column) == SQLITE_BLOB) {
-        return sqlite3_column_blob(stmt.get(), column);
-    } throw SQLiteException("Column doesn't contain a blob");
-}
-
-ValueHandler StatementHandler::getColumn(const int column) {
-    return ValueHandler(stmt.get(), column);
-}
-
-bool StatementHandler::step() {
-    return (sqlite3_step(stmt.get()) == SQLITE_ROW);
-}
-
- void StatementHandler::reset() {
-     sqlite3_reset(stmt.get());
- }
-
- void StatementHandler::clear() {
-     sqlite3_clear_bindings(stmt.get());
- }
-

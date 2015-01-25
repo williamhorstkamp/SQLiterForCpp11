@@ -3,7 +3,7 @@
 *  Provides a portable SQLite3 interface to be used with the StatementHandler
 *
 *  @author William Horstkamp
-*  @version 0.5
+*  @version 0.6
 */
 
 /**
@@ -31,66 +31,86 @@
 
 #include "SQLiteHandler.h"
 
-SQLiteHandler::SQLiteHandler(const char *location) {
-   forceOpenDatabase(location);
-}
+namespace SQLiter {
 
-SQLiteHandler::~SQLiteHandler() {
-    destroyStatements();
-    db.reset();
-}
+    SQLiteHandler::SQLiteHandler(const char *location) {
+        forceOpenDatabase(location);
+    }
 
-StatementHandler *SQLiteHandler::prepareStatement(const char *key, const char *stmtStr) {
-    stmts.insert(std::make_pair(key, std::unique_ptr<StatementHandler>(new StatementHandler(db.get(), stmtStr))));
-    return getStatement(key);
-}
+    SQLiteHandler::~SQLiteHandler() {
+        destroyStatements();
+        db.reset();
+    }
+
+    StatementHandler *SQLiteHandler::prepareStatement(const char *key, const char *stmtStr) {
+        stmts.insert(std::make_pair(key, std::unique_ptr<StatementHandler>(new StatementHandler(db.get(), stmtStr))));
+        return getStatement(key);
+    }
 
 
-void SQLiteHandler::destroyStatements() {
-    stmts.clear();
-}
+    void SQLiteHandler::destroyStatements() {
+        stmts.clear();
+    }
 
-StatementHandler *SQLiteHandler::getStatement(const char *key) {
-    return stmts.at(key).get();
-}
+    StatementHandler *SQLiteHandler::getStatement(const char *key) {
+        return stmts.at(key).get();
+    }
 
-void SQLiteHandler::forceOpenDatabase(const char *location) {
-    sqlite3 *connection = nullptr;
-    result(sqlite3_open(location, &connection));
-    db.reset(connection);
-}
-
-void SQLiteHandler::openDatabase(const char *location) {
-    if (fileExists(location)) {
+    void SQLiteHandler::forceOpenDatabase(const char *location) {
         sqlite3 *connection = nullptr;
         result(sqlite3_open(location, &connection));
         db.reset(connection);
-    } else {
-        throw SQLiteException("File Does Not Exist");
     }
-}
 
-void SQLiteHandler::createDatabase(const char *location) {
-    if (!fileExists(location)) {
-        sqlite3 *connection = nullptr;
-        result(sqlite3_open(location, &connection));
-        db.reset(connection);
-    } else {
-        throw SQLiteException("File Already Exists");
+    void SQLiteHandler::openDatabase(const char *location) {
+        if (fileExists(location)) {
+            sqlite3 *connection = nullptr;
+            result(sqlite3_open(location, &connection));
+            db.reset(connection);
+        } else {
+            throw SQLiteException("File Does Not Exist");
+        }
     }
-}
 
-void SQLiteHandler::closeDatabase() {
-    destroyStatements();
-    db.reset();
-}
+    void SQLiteHandler::createDatabase(const char *location) {
+        if (!fileExists(location)) {
+            sqlite3 *connection = nullptr;
+            result(sqlite3_open(location, &connection));
+            db.reset(connection);
+        } else {
+            throw SQLiteException("File Already Exists");
+        }
+    }
 
-int SQLiteHandler::rawExec(const char *stmtStr) {
-    result(sqlite3_exec(db.get(), stmtStr, NULL, NULL, NULL));
-    return sqlite3_changes(db.get());
-}
+    void SQLiteHandler::closeDatabase() {
+        destroyStatements();
+        db.reset();
+    }
 
-void SQLiteHandler::result(const int resCode) {
-    if (resCode != SQLITE_OK)
-        throw SQLiteException(sqlite3_errmsg(db.get()));
+    int SQLiteHandler::rawExec(const char *stmtStr) {
+        result(sqlite3_exec(db.get(), stmtStr, NULL, NULL, NULL));
+        return sqlite3_changes(db.get());
+    }
+
+    void SQLiteHandler::result(const int resCode) {
+        if (resCode != SQLITE_OK)
+            throw SQLiteException(sqlite3_errmsg(db.get()));
+    }
+
+    void SQLiteHandler::scalarFunction(const char *name, int nArg, void *pApp,
+        void(*xFunc)(sqlite3_context*, int, sqlite3_value**),
+        void(*xDestroy)(void*)) {
+        sqlite3_create_function_v2(db.get(), name, nArg, SQLITE_UTF8, pApp, xFunc, NULL, NULL, xDestroy);
+    }
+
+    void SQLiteHandler::aggregateFunction(const char *name, int nArg, void *pApp,
+        void(*xStep)(sqlite3_context*, int, sqlite3_value**),
+        void(*xFinal)(sqlite3_context*),
+        void(*xDestroy)(void*)) {
+        sqlite3_create_function_v2(db.get(), name, nArg, SQLITE_UTF8, pApp, NULL, xStep, xFinal, xDestroy);
+    }
+
+    void SQLiteHandler::deleteFunction(const char*name) {
+        sqlite3_create_function_v2(db.get(), name, NULL, SQLITE_UTF8, NULL, NULL, NULL, NULL, NULL);
+    }
 }
