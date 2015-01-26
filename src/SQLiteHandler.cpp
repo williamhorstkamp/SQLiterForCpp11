@@ -89,7 +89,7 @@ namespace SQLiter {
 
     int SQLiteHandler::rawExec(const char *stmtStr) {
         result(sqlite3_exec(db.get(), stmtStr, NULL, NULL, NULL));
-        return sqlite3_changes(db.get());
+        return changes();
     }
 
     void SQLiteHandler::result(const int resCode) {
@@ -112,5 +112,21 @@ namespace SQLiter {
 
     void SQLiteHandler::deleteFunction(const char*name) {
         sqlite3_create_function_v2(db.get(), name, NULL, SQLITE_UTF8, NULL, NULL, NULL, NULL, NULL);
+    }
+
+    int SQLiteHandler::changes() {
+        return sqlite3_changes(db.get());
+    }
+
+    int SQLiteHandler::totalChanges() {
+        return sqlite3_total_changes(db.get());
+    }
+
+    int SQLiteHandler::errorCode() {
+        return sqlite3_errcode(db.get());
+    }
+
+    const char *SQLiteHandler::errorMessage() {
+        return sqlite3_errmsg(db.get());
     }
 }
