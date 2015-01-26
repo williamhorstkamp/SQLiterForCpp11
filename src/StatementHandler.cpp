@@ -5,7 +5,7 @@
  *  with the bonus of providing a convenient interface
  *
  *  @author William Horstkamp
- *  @version 0.5
+ *  @version 0.7
  */
 
 /**

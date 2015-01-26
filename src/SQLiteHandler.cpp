@@ -3,7 +3,7 @@
 *  Provides a portable SQLite3 interface to be used with the StatementHandler
 *
 *  @author William Horstkamp
-*  @version 0.6
+*  @version 0.7
 */
 
 /**

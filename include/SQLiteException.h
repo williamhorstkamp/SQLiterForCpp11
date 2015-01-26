@@ -3,7 +3,7 @@
  *  Simple exception object to be used by the rest of the library.
  *
  *  @author William Horstkamp
- *  @version 0.5
+ *  @version 1.0
  */
 
 #include <stdexcept>
@@ -20,12 +20,12 @@ namespace SQLiter{
     public:
         /**
          *  Constructor accepts a pointer to a C string containing the error
-         *  message. Hands that error message to it's parent constructor.
+         *  message. Hands that error message to parent constructor.
          *
          *  @param errMsg - Null terminated C String containing the error message
-         *      to built an SQLiteException around.
+         *      to built an SQLiteException around
          *
-         *  @return - SQLiteException wrapping the error message to be thrown.
+         *  @return - SQLiteException wrapping the error message to be thrown
          */
         SQLiteException(const char *errMsg) : std::runtime_error(errMsg) {};
     };
