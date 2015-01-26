@@ -5,7 +5,7 @@
  *  with the bonus of providing a convenient interface
  *
  *  @author William Horstkamp
- *  @version 0.5
+ *  @version 0.7
  */
 
 /**
@@ -38,6 +38,8 @@
 namespace SQLiter {
 
     StatementHandler::~StatementHandler() {
+        inputAlias.clear();
+        outputAlias.clear();
         stmt.reset();
     }
 
@@ -88,10 +90,15 @@ namespace SQLiter {
         } throw SQLiteException("Column doesn't contain a int");
     }
 
+    sqlite3_int64 StatementHandler::getInt64(const int column) {
+        if (getType(column) == SQLITE_INTEGER) {
+            return sqlite3_column_int64(stmt.get(), column);
+        } throw SQLiteException("Column doesn't contain a int");
+    }
+
     double StatementHandler::getDouble(const int column) {
         if (getType(column) == SQLITE_FLOAT) {
             return sqlite3_column_double(stmt.get(), column);
-
         } throw SQLiteException("Column doesn't contain a float");
     }
 
@@ -121,15 +128,23 @@ namespace SQLiter {
         return sqlite3_column_count(stmt.get());
     }
 
-    const char *StatementHandler::databaseName(int col) {
+    const char *StatementHandler::databaseName(const int col) {
         return sqlite3_column_database_name(stmt.get(), col);
     }
 
-    const char *StatementHandler::tableName(int col) {
+    const char *StatementHandler::tableName(const int col) {
         return sqlite3_column_table_name(stmt.get(), col);
     }
 
-    const char *StatementHandler::columnName(int col) {
+    const char *StatementHandler::columnName(const int col) {
         return sqlite3_column_origin_name(stmt.get(), col);
+    }
+
+    void StatementHandler::setInputAlias(const char *alias, const int colNum) {
+        inputAlias.insert(std::pair<const char*, int>(alias, colNum));
+    }
+
+    void StatementHandler::setOutputAlias(const char *alias, const int colNum) {
+        outputAlias.insert(std::pair<const char*, int>(alias, colNum));
     }
 }

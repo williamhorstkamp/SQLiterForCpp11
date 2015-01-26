@@ -5,7 +5,7 @@
  *  dynamic typing.
  *
  *  @author William Horstkamp
- *  @version 0.5
+ *  @version 1.0
  */
 
 #include <sqlite3.h>
@@ -14,12 +14,15 @@ namespace SQLiter {
 
     /**
      *  Wrapper for the various types of values that can be stored in an SQlite3
-     *  field. Used as the return type of StatementHandler.getColumn(const int).
+     *  field. Used as the return type of StatementHandler.getColumn(const int)
+     *  and StatementHandler.getColumn(const char *).
      *  Class consists of a series of inline functions used for implicit type
-     *  coversion in the form of varType var = StatementHandler.getColumn(const int)
+     *  coversion in the form of:
+     *  varType var = StatementHandler.getColumn(const int)
      *
      *  **CASTING TO THE WRONG TYPE IS UNDEFINED AND OFTEN UNSAFE - BE WARNED**
-     *  **CHECK THE COL TYPE WITH StatementHandler.getType(const int) BEFOREHAND**
+     *  ** CHECK THE COL TYPE WITH StatementHandler.getType(const int) **
+     *  ** OR StatementHandler.getType(const char *) BEFOREHAND **
      */
     class ValueHandler {
     private:
@@ -33,7 +36,7 @@ namespace SQLiter {
          *
          *  @param inputStmt - Pointer to the statement that contains the value
          *  @param inputColNum - Integer representing the column that contains
-         *      the value.
+         *      the value
          *
          *  @return - ValueHandler object that wraps the value.
          */
@@ -62,7 +65,7 @@ namespace SQLiter {
         /**
         *  Blob conversion operator for implicit type coversion to blob
         *
-        *   @return - Pointer to sqlite3 blob
+        *   @return - Pointer to data contained within the column and statement
         */
         inline operator const void *() const  {
             return sqlite3_column_blob(stmt, colNum);
