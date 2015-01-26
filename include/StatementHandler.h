@@ -12,6 +12,7 @@
 #include <memory>
 #include <vector>
 #include <string>
+#include <map>
 #include "ValueHandler.h"
 
 namespace SQLiter {
@@ -38,6 +39,8 @@ namespace SQLiter {
     private:
 
         std::unique_ptr<sqlite3_stmt, Closesqlite3_stmt> stmt;
+        std::map<const char *, int> inputAlias;
+        std::map<const char *, int> outputAlias;
     public:
 
         /**
@@ -95,7 +98,6 @@ namespace SQLiter {
          *
          *  @param int var - the place of the prepared statement that the input is for
          *      Begins with 1, as per the SQLite standard
-         *
          *  @param int input - int to bind
          */
         void bind(const int var, const int input);
@@ -106,7 +108,6 @@ namespace SQLiter {
          *
          *  @param int var - the place of the prepared statement that the input is for
          *      Begins with 1, as per the SQLite standard
-         *
          *  @param double input - double to bind
          */
         void bind(const int var, const double input);
@@ -117,7 +118,6 @@ namespace SQLiter {
          *
          *  @param int var - the place of the prepared statement that the input is for
          *      Begins with 1, as per the SQLite standard
-         *
          *  @param void input - blob to bind
          */
         void bind(const int var, const void *input, const int size);
@@ -132,6 +132,61 @@ namespace SQLiter {
         void bindNull(const int var);
 
         /**
+         *  Binds the variable with a given alias in the prepared statement
+         *  to a char * as input
+         *
+         *  @param var - the alias of the prepared statement that the input is for.
+         *  @param char input - pointer to C string to bind
+         */
+        inline void bind(const char *var, const char *input) {
+            bind(inputAlias.at(var), input);
+        }
+
+        /**
+         *   Binds the variable with a given alias in the prepared statement
+         *  to an int as input
+         *
+         *  @param int var - the alias of the prepared statement that the input is for
+         *  @param int input - int to bind
+         */
+        inline void bind(const char *var, const int input) {
+            bind(inputAlias.at(var), input);
+        }
+
+        /**
+         *   Binds the variable with a given alias in the prepared statement
+         *  to a double as input
+         *
+         *  @param int var - the alias of the prepared statement that the input is for
+         *  @param double input - double to bind
+         */
+        inline void bind(const char *var, const double input) {
+            bind(inputAlias.at(var), input);
+        }
+
+        /**
+         *   Binds the variable with a given alias in the prepared statement
+         *  to a blob as input
+         *
+         *  @param int var - the alias of the prepared statement that the input is for
+         *  @param void input - blob to bind
+         */
+        inline void bind(const char *var, const void *input, const int size) {
+            bind(inputAlias.at(var), input, size);
+        }
+
+        /**
+         *   Binds the variable with a given alias in the prepared statement
+         *  to null
+         *
+         *  @param int var - the alias of the prepared statement that is to be
+         *      set to null
+         */
+        inline void bindNull(const char *var) {
+            sqlite3_bind_null(stmt.get(), inputAlias.at(var));
+        }
+
+        /**
         *  Gives the return type of a resultant column as integer
         *
         *  @param column - Integer representing column whose type to check
@@ -143,7 +198,7 @@ namespace SQLiter {
         const int getType(const int column);
 
         /**
-         *  Returns the size of the item currently in the column
+         *  Returns the size of the item currently in the result column
          *
          *  @param column - Integer representing column whose type to check
          *
@@ -230,6 +285,120 @@ namespace SQLiter {
         ValueHandler getColumn(const int column);
 
         /**
+         *  Gives the return type of a resultant column as integer
+         *
+         *  @param column - C String representing column whose type to check
+         *
+         *  @return int - Integer containing the corresponding SQLite3 datatype code
+         *  Possible results: 1 - INT, 2 - FLOAT, 3 - TEXT, 4 - BLOB, 5 - NULL
+         *   0 - ERROR
+         */
+        inline const int getType(const char *column) {
+            return getType(outputAlias.at(column));
+        }
+
+        /**
+         *  Returns the size of the item currently in the result column
+         *
+         *  @param column - C String representing column whose type to check
+         *
+         *  @return - Integer representing the size of the value currently in the
+         *      the column, in bytes.
+         */
+        inline const int getSize(const char *column) {
+            return getSize(outputAlias.at(column));
+        }
+
+        /**
+         *  Returns a pointer to a null-terminated string in the specified column
+         *  of the result of the latest step
+         *
+         *  *RESULTS ARE UNDEFINED IF A ROW WAS NOT RETURNED OR COLUMN IS INVALID*
+         *
+         *  @param column - C String representing the column number to pull the
+         *      resultant text from
+         *  @return const char* - pointer to the null terminated character array
+         *      containing resultant text for a given column or nullptr if column
+         *      contains null
+         */
+        inline std::string getString(const char *column) {
+            return getString(outputAlias.at(column));
+        }
+
+        /**
+         *  Returns an integer in the specified column of the result of the
+         *  latest step
+         *
+         *  *RESULTS ARE UNDEFINED IF A ROW WAS NOT RETURNED OR COLUMN IS INVALID*
+         *
+         *  @param column - C String representing the column number to pull the
+         *      resultant int from
+         *  @return int - integer value
+         */
+        inline int getInt(const char *column) {
+            return getInt(outputAlias.at(column));
+        }
+
+        /**
+         *  Returns an SQLite3 int64 in the specified column of the result of the
+         *  latest step
+         *
+         *  *RESULTS ARE UNDEFINED IF A ROW WAS NOT RETURNED OR COLUMN IS INVALID*
+         *
+         *  @param column - C String representing the column number to pull the
+         *      resultant int from
+         *  @return int - sqlite3_int64 value
+         */
+        inline sqlite3_int64 getInt64(const char *column) {
+            return getInt64(outputAlias.at(column));
+        }
+
+        /**
+         *  Returns a double precision float in the specified column of the
+         *  result of the latest step
+         *
+         *  *RESULTS ARE UNDEFINED IF A ROW WAS NOT RETURNED OR COLUMN IS INVALID*
+         *
+         *  @param column - C String representing the column number to pull the
+         *      resultant int from
+         *  @return double - double value
+         */
+        inline double getDouble(const char *column) {
+            return getDouble(outputAlias.at(column));
+        }
+
+        /**
+         *  Returns a blob in the specified column of the
+         *  result of the latest step
+         *
+         *  *RESULTS ARE UNDEFINED IF A ROW WAS NOT RETURNED OR COLUMN IS INVALID*
+         *
+         *  @param column - C String representing the column number to pull the
+         *      resultant int from
+         *  @return - pointer to blob
+         */
+        inline const void *getBlob(const char *column) {
+            return getBlob(outputAlias.at(column));
+        }
+
+        /**
+         *  Returns a ValueHandler objects that functions as a wrapper and
+         *  type converter for the range of return types that SQLite supports.
+         *  Useful if you want to be able to implicitly cast from a column value
+         *
+         *  Useage:     int var = stmt.getColumn(1);
+         *              double var2 = stmt.getColumn(2);
+         *
+         *  @param column - C String representing the column number to pull the
+         *      resultant column value from
+         *
+         *  @return - ValueHandler that wraps an SQLite3 value
+         */
+        inline ValueHandler getColumn(const char *column) {
+            return getColumn(outputAlias.at(column));
+        }
+
+        /**
          *  Steps the prepared statement a single time
          *
          *  @return bool - Returns true if there are results from the SQL
@@ -266,7 +435,7 @@ namespace SQLiter {
          *  @return - Pointer to null terminated C String containing database
          *      name.
          */
-        const char *databaseName(int col);
+        const char *databaseName(const int col);
 
         /**
          *  Returns the name of the table the statement column is from
@@ -274,14 +443,36 @@ namespace SQLiter {
          *  @return - Pointer to null terminated C String containing name of
          *      the table.
          */
-        const char *tableName(int col);
+        const char *tableName(const int col);
 
         /**
-        *  Returns the name of the column the statement column is from
-        *
-        *  @return - Pointer to null terminated C String containing column
-        *      name.
-        */
-        const char *columnName(int col);
+         *  Returns the name of the column the statement column is from.
+         *       This is in reference to the name as stored on the table,
+         *       as opposed to prepared statement's field as set by the user.
+         *
+         *  @return - Pointer to null terminated C String containing column
+         *      name.
+         */
+        const char *columnName(const int col);
+
+        /**
+         *  Binds an input column to an alias.
+         *
+         *  @param alias - C String to be used as the alias to the input
+         *      column
+         *  @param colNum - Integer representing the input column to bind to
+         *      the alias
+         */
+        void bindInputAlias(const char *alias, const int colNum);
+
+        /**
+         *  Binds an output column to an alias.
+         *
+         *  @param alias - C String to be used as the alias to the input
+         *      column
+         *  @param colNum - Integer representing the output column to bind to
+         *      the alias
+         */
+        void bindOutputAlias(const char *alias, const int colNum);
     };
 }

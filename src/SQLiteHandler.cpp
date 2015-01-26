@@ -126,7 +126,7 @@ namespace SQLiter {
         return sqlite3_errcode(db.get());
     }
 
-    const char *SQLiteHandler::errorMessage() {
+    const char *SQLiteHandler::errorMsg() {
         return sqlite3_errmsg(db.get());
     }
 }
