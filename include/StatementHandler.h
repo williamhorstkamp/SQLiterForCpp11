@@ -432,6 +432,8 @@ namespace SQLiter {
         /**
          *  Returns the name of the database the statement column is from
          *
+         *  @param - Integer representing column to lookup.
+         *
          *  @return - Pointer to null terminated C String containing database
          *      name.
          */
@@ -439,6 +441,8 @@ namespace SQLiter {
 
         /**
          *  Returns the name of the table the statement column is from
+         *
+         *  @param - Integer representing column to lookup.
          *
          *  @return - Pointer to null terminated C String containing name of
          *      the table.
@@ -449,11 +453,51 @@ namespace SQLiter {
          *  Returns the name of the column the statement column is from.
          *       This is in reference to the name as stored on the table,
          *       as opposed to prepared statement's field as set by the user.
+         * 
+         *  @param - Integer representing column to lookup.
          *
          *  @return - Pointer to null terminated C String containing column
          *      name.
          */
         const char *columnName(const int col);
+
+        /**
+         *  Returns the name of the database the statement column is from
+         *
+         *  @param - C String representing column alias to lookup.
+         *
+         *  @return - Pointer to null terminated C String containing database
+         *      name.
+         */
+        inline const char *databaseName(const char *col) {
+            return databaseName(outputAlias.at(col));
+        }
+
+        /**
+         *  Returns the name of the table the statement column is from
+         *
+         *  @param - C String representing column alias to lookup.
+         *
+         *  @return - Pointer to null terminated C String containing name of
+         *      the table.
+         */
+        inline const char *tableName(const char *col) {
+            return tableName(outputAlias.at(col));
+        }
+
+        /**
+         *  Returns the name of the column the statement column is from.
+         *       This is in reference to the name as stored on the table,
+         *       as opposed to prepared statement's field as set by the user.
+         *
+         *  @param - C String representing column alias to lookup.
+         *
+         *  @return - Pointer to null terminated C String containing column
+         *      name.
+         */
+        inline const char *columnName(const char *col) {
+            return columnName(outputAlias.at(col));
+        }
 
         /**
          *  Binds an input column to an alias.
@@ -463,7 +507,7 @@ namespace SQLiter {
          *  @param colNum - Integer representing the input column to bind to
          *      the alias
          */
-        void bindInputAlias(const char *alias, const int colNum);
+        void setInputAlias(const char *alias, const int colNum);
 
         /**
          *  Binds an output column to an alias.
@@ -473,6 +517,6 @@ namespace SQLiter {
          *  @param colNum - Integer representing the output column to bind to
          *      the alias
          */
-        void bindOutputAlias(const char *alias, const int colNum);
+        void setOutputAlias(const char *alias, const int colNum);
     };
 }

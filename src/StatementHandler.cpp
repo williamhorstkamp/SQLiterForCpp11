@@ -140,11 +140,11 @@ namespace SQLiter {
         return sqlite3_column_origin_name(stmt.get(), col);
     }
 
-    void StatementHandler::bindInputAlias(const char *alias, const int colNum) {
+    void StatementHandler::setInputAlias(const char *alias, const int colNum) {
         inputAlias.insert(std::pair<const char*, int>(alias, colNum));
     }
 
-    void StatementHandler::bindOutputAlias(const char *alias, const int colNum) {
+    void StatementHandler::setOutputAlias(const char *alias, const int colNum) {
         outputAlias.insert(std::pair<const char*, int>(alias, colNum));
     }
 }

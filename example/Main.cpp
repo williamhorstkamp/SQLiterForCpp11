@@ -32,25 +32,38 @@ int main(int argc, char *argv[])
     char *buffer = new char[size];
     file.read(buffer, size);
     
+
+
     StatementHandler *stmt = db.prepareStatement("testStatement2", 
         "INSERT INTO TestTable2(testreal2, testblob) values (?, ?)");    //these lines show the 'clean' way of working with prepared statements
-    stmt->bind(1, 5.0);
-    stmt->bind(2, buffer);
+    stmt->setInputAlias("real", 1);    //giving the input columns aliases
+    stmt->setInputAlias("blob", 2);
+    stmt->bind("real", 5.0); //does the same as stmt->bind(1, 5.0) but is easier to interpret
+    stmt->bind("blob", buffer);
     stmt->step();
     stmt->reset();
+    std::cout << db.changes() << " change(s)" << std::endl; // reporting the changed rows that the statement caused
     
     file.close();   //file cleanup
     delete buffer;
     
     
     db.prepareStatement("testStatement3",
-        "select testtable.testtext, testTable.testreal, testTable2.testblob from testTable join testTable2 on testTable.testreal = testtable2.testreal2");
+        "select testtable.testtext, testTable.testreal, testTable2.testblob "
+        "from testTable join testTable2 on "
+        "testTable.testreal = testtable2.testreal2");
     stmt = db.getStatement("testStatement3");
+    stmt->setOutputAlias("text", 0);   //giving the output columns aliases
+    stmt->setOutputAlias("real as int", 1);
+    stmt->setOutputAlias("blob", 2);
     while (stmt->step()) {  //getting back results from a prepared statement
-        std::cout << stmt->getString(0) << "\t";    //calling get<type> is the best way to output directly into streams
-        int i = stmt->getColumn(1); //getColumn() is safe and easy so long as you are sure you are using the correct type
+        std::cout << stmt->getString("text") << "\t";    //calling get<type> is the best way to output directly into streams
+        int i = stmt->getColumn("real as int"); //getColumn() is safe and easy so long as you are sure you are using the correct type
         std::cout << i << "\t";
-        std::cout << stmt->getSize(2) << std::endl;
+        std::cout << stmt->getSize("blob") << std::endl;    //demonstrating a few functions
+        std::cout << stmt->databaseName("text") << " " << stmt->tableName(2) << " ";
+        std::cout << stmt->columnName("real as int") << " " << stmt->columnName(2);
+        std::cout << " " << stmt->columnCount() << std::endl;
     }
     stmt->reset();
 
