@@ -3,7 +3,7 @@ SQLiter For C++11 is an SQLite3 wrapper with C++11 features.
   
 It was created to bridge the significant gap between the SQLite3 C interface and
 the featureset available in the newest versions of C++. Containing just a small handful
-of classes, only two of whose interface (SQLite and Statemnent wrappers) must be learned
+of classes, only two of whose interface (SQLite and Statement wrappers) must be learned
 to successfully use the wrapper.  
 In addition to this, SQLiter For C++11 replaces the need to learn the numerous SQLite3
 constructor and destructor functions with a predictable object oriented approach.
