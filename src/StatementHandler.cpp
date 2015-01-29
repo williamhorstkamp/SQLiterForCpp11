@@ -5,7 +5,7 @@
  *  with the bonus of providing a convenient interface
  *
  *  @author William Horstkamp
- *  @version 0.7
+ *  @version 0.8
  */
 
 /**
@@ -37,16 +37,16 @@
 
 namespace SQLiter {
 
-    StatementHandler::~StatementHandler() {
-        inputAlias.clear();
-        outputAlias.clear();
-        stmt.reset();
-    }
-
     StatementHandler::StatementHandler(sqlite3 *db, const char *stmtStr) {
         sqlite3_stmt *prepStmt;
         sqlite3_prepare_v2(db, stmtStr, strlen(stmtStr), &prepStmt, nullptr);
         stmt = std::unique_ptr<sqlite3_stmt, Closesqlite3_stmt>(prepStmt);
+    }
+
+    StatementHandler::~StatementHandler() {
+        inputAlias.clear();
+        outputAlias.clear();
+        stmt.reset();
     }
 
     void StatementHandler::bind(const int var, const char *input) {

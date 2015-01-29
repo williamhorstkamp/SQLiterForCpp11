@@ -3,7 +3,7 @@
 *  Provides a portable SQLite3 interface to be used with the StatementHandler
 *
 *  @author William Horstkamp
-*  @version 0.7
+*  @version 0.8
 */
 
 /**
@@ -42,24 +42,14 @@ namespace SQLiter {
         db.reset();
     }
 
-    StatementHandler *SQLiteHandler::prepareStatement(const char *key, const char *stmtStr) {
-        stmts.insert(std::make_pair(key, std::unique_ptr<StatementHandler>(new StatementHandler(db.get(), stmtStr))));
-        return getStatement(key);
-    }
-
-
-    void SQLiteHandler::destroyStatements() {
-        stmts.clear();
-    }
-
-    StatementHandler *SQLiteHandler::getStatement(const char *key) {
-        return stmts.at(key).get();
-    }
-
-    void SQLiteHandler::forceOpenDatabase(const char *location) {
-        sqlite3 *connection = nullptr;
-        result(sqlite3_open(location, &connection));
-        db.reset(connection);
+    void SQLiteHandler::createDatabase(const char *location) {
+        if (!fileExists(location)) {
+            sqlite3 *connection = nullptr;
+            result(sqlite3_open(location, &connection));
+            db.reset(connection);
+        } else {
+            throw SQLiteException("File Already Exists");
+        }
     }
 
     void SQLiteHandler::openDatabase(const char *location) {
@@ -72,19 +62,32 @@ namespace SQLiter {
         }
     }
 
-    void SQLiteHandler::createDatabase(const char *location) {
-        if (!fileExists(location)) {
-            sqlite3 *connection = nullptr;
-            result(sqlite3_open(location, &connection));
-            db.reset(connection);
-        } else {
-            throw SQLiteException("File Already Exists");
-        }
-    }
-
     void SQLiteHandler::closeDatabase() {
         destroyStatements();
         db.reset();
+    }
+
+    void SQLiteHandler::forceOpenDatabase(const char *location) {
+        sqlite3 *connection = nullptr;
+        result(sqlite3_open(location, &connection));
+        db.reset(connection);
+    }
+
+    StatementHandler *SQLiteHandler::prepareStatement(const char *key, const char *stmtStr) {
+        stmts.insert(std::make_pair(key, std::unique_ptr<StatementHandler>(new StatementHandler(db.get(), stmtStr))));
+        return getStatement(key);
+    }
+
+    StatementHandler *SQLiteHandler::getStatement(const char *key) {
+        return stmts.at(key).get();
+    }
+
+    void SQLiteHandler::destroyStatement(const char *key) {
+        stmts.erase(key);
+    }
+
+    void SQLiteHandler::destroyStatements() {
+        stmts.clear();
     }
 
     int SQLiteHandler::rawExec(const char *stmtStr) {

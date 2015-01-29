@@ -5,7 +5,7 @@
  *  with the bonus of providing a convenient interface
  *
  *  @author William Horstkamp
- *  @version 0.7
+ *  @version 0.8
  */
 
 #include <sqlite3.h>
@@ -44,6 +44,17 @@ namespace SQLiter {
     public:
 
         /**
+        *  Constructor prepares a statement on a db given a db and string.
+        *
+        *  @param db - Database to prepare the statement on
+        *  @param stmtStr - string to build the prepared statement with
+        *
+        *  @return - StatementHandler containing a unique_ptr that is managing
+        *      a prepared statement that is ready to be bound
+        */
+        StatementHandler(sqlite3 *db, const char *stmtStr);
+
+        /**
          *  Default Destructor cleans up our sqlite3_stmt unique_ptr and clears
          *  both the inputAlias and outputAlias maps.
          */
@@ -72,17 +83,6 @@ namespace SQLiter {
          *  prepared statement from the StatementHandler.
          */
         StatementHandler(StatementHandler &&o) = delete;
-
-        /**
-         *  Constructor prepares a statement on a db given a db and string.
-         *
-         *  @param db - Database to prepare the statement on
-         *  @param stmtStr - string to build the prepared statement with
-         *
-         *  @return - StatementHandler containing a unique_ptr that is managing
-         *      a prepared statement that is ready to be bound
-         */
-        StatementHandler(sqlite3 *db, const char *stmtStr);
 
         /**
          *  Binds the variable in a given position of the prepared statement
