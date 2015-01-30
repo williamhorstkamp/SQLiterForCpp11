@@ -66,6 +66,7 @@ int main(int argc, char *argv[])
         std::cout << " " << stmt->columnCount() << std::endl;
     }
     stmt->reset();
+    db.destroyStatement("testStatement3");  //destroys a statement correctly (finalization) by its name
 
     std::cin.get();
     db.closeDatabase(); //the only cleanup required to get rid of the database and prepared statements correctly
