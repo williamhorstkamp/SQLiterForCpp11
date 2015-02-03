@@ -25,11 +25,11 @@ int main(int argc, char *argv[])
     db.getStatement("testStatement")->step();   //stepping the statement
     db.getStatement("testStatement")->reset();  //resetting the statement to be ran again
 
-    std::ifstream file("smile.png");    //opening a file into an ifstream
+    std::ifstream file("example/smile.png");    //opening a file into an ifstream
     file.seekg(0, std::ifstream::end);
     std::streampos size = file.tellg();
     file.seekg(0);
-    char *buffer = new char[size];
+    char *buffer = new char[size];  //relatively unsafe - can crash the program if file is null
     file.read(buffer, size);
     
 
