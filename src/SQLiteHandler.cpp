@@ -43,8 +43,12 @@ namespace SQLiter {
     }
 
     void SQLiteHandler::createDatabase(const char *location) {
-        if (!fileExists(location)) {
-            sqlite3 *connection = nullptr;
+        sqlite3 *connection = nullptr;
+        if (location = nullptr) {
+            result(sqlite3_open(nullptr, &connection));
+            db.reset(connection);
+        }
+        else if (!fileExists(location)) {
             result(sqlite3_open(location, &connection));
             db.reset(connection);
         } else {
