@@ -33,7 +33,7 @@
 
 namespace SQLiter {
 
-    SQLiteHandler::SQLiteHandler(const char *location) {
+    SQLiteHandler::SQLiteHandler(const std::string location) {
         forceOpenDatabase(location);
     }
 
@@ -42,10 +42,10 @@ namespace SQLiter {
         db.reset();
     }
 
-    void SQLiteHandler::createDatabase(const char *location) {  
+    void SQLiteHandler::createDatabase(const std::string location) {
        if (!fileExists(location)) {
             sqlite3 *connection = nullptr;
-            result(sqlite3_open(location, &connection));
+            result(sqlite3_open(location.c_str(), &connection));
             db.reset(connection);
         } else {
             throw SQLiteException("File Already Exists");
@@ -58,10 +58,10 @@ namespace SQLiter {
         db.reset(connection);
     }
 
-    void SQLiteHandler::openDatabase(const char *location) {
+    void SQLiteHandler::openDatabase(const std::string location) {
         if (fileExists(location)) {
             sqlite3 *connection = nullptr;
-            result(sqlite3_open(location, &connection));
+            result(sqlite3_open(location.c_str(), &connection));
             db.reset(connection);
         } else {
             throw SQLiteException("File Does Not Exist");
@@ -73,15 +73,15 @@ namespace SQLiter {
         db.reset();
     }
 
-    void SQLiteHandler::forceOpenDatabase(const char *location) {
+    void SQLiteHandler::forceOpenDatabase(const std::string location) {
         sqlite3 *connection = nullptr;
-        result(sqlite3_open(location, &connection));
+        result(sqlite3_open(location.c_str(), &connection));
         db.reset(connection);
     }
 
-    void SQLiteHandler::load(const char *location) {
+    void SQLiteHandler::load(const std::string location) {
         sqlite3 *connection = nullptr;
-        sqlite3_open(location, &connection);
+        sqlite3_open(location.c_str(), &connection);
         sqlite3_backup *backup = sqlite3_backup_init(db.get(), "main", connection, "main");
         if (backup) {
             sqlite3_backup_step(backup, -1);
@@ -90,9 +90,9 @@ namespace SQLiter {
         sqlite3_close(connection);
     }
 
-    void SQLiteHandler::save(const char *location) {
+    void SQLiteHandler::save(const std::string location) {
         sqlite3 *connection = nullptr;
-        sqlite3_open(location, &connection);
+        sqlite3_open(location.c_str(), &connection);
         sqlite3_backup *backup = sqlite3_backup_init(connection, "main", db.get(), "main");
         if (backup) {
             sqlite3_backup_step(backup, -1);
@@ -101,16 +101,16 @@ namespace SQLiter {
         sqlite3_close(connection);
     }
 
-    StatementHandler *SQLiteHandler::prepareStatement(const char *key, const char *stmtStr) {
+    StatementHandler *SQLiteHandler::prepareStatement(const std::string key, const std::string stmtStr) {
         stmts.insert(std::make_pair(key, std::unique_ptr<StatementHandler>(new StatementHandler(db.get(), stmtStr))));
         return getStatement(key);
     }
 
-    StatementHandler *SQLiteHandler::getStatement(const char *key) {
+    StatementHandler *SQLiteHandler::getStatement(const std::string key) {
         return stmts.at(key).get();
     }
 
-    void SQLiteHandler::destroyStatement(const char *key) {
+    void SQLiteHandler::destroyStatement(const std::string key) {
         stmts.erase(key);
     }
 
@@ -118,8 +118,8 @@ namespace SQLiter {
         stmts.clear();
     }
 
-    int SQLiteHandler::rawExec(const char *stmtStr) {
-        result(sqlite3_exec(db.get(), stmtStr, NULL, NULL, NULL));
+    int SQLiteHandler::rawExec(const std::string stmtStr) {
+        result(sqlite3_exec(db.get(), stmtStr.c_str(), NULL, NULL, NULL));
         return changes();
     }
 
@@ -128,21 +128,21 @@ namespace SQLiter {
             throw SQLiteException(sqlite3_errmsg(db.get()));
     }
 
-    void SQLiteHandler::scalarFunction(const char *name, int nArg, void *pApp,
+    void SQLiteHandler::scalarFunction(const std::string name, int nArg, void *pApp,
         void(*xFunc)(sqlite3_context*, int, sqlite3_value**),
         void(*xDestroy)(void*)) {
-        sqlite3_create_function_v2(db.get(), name, nArg, SQLITE_UTF8, pApp, xFunc, NULL, NULL, xDestroy);
+        sqlite3_create_function_v2(db.get(), name.c_str(), nArg, SQLITE_UTF8, pApp, xFunc, NULL, NULL, xDestroy);
     }
 
-    void SQLiteHandler::aggregateFunction(const char *name, int nArg, void *pApp,
+    void SQLiteHandler::aggregateFunction(const std::string name, int nArg, void *pApp,
         void(*xStep)(sqlite3_context*, int, sqlite3_value**),
         void(*xFinal)(sqlite3_context*),
         void(*xDestroy)(void*)) {
-        sqlite3_create_function_v2(db.get(), name, nArg, SQLITE_UTF8, pApp, NULL, xStep, xFinal, xDestroy);
+        sqlite3_create_function_v2(db.get(), name.c_str(), nArg, SQLITE_UTF8, pApp, NULL, xStep, xFinal, xDestroy);
     }
 
-    void SQLiteHandler::deleteFunction(const char*name) {
-        sqlite3_create_function_v2(db.get(), name, NULL, SQLITE_UTF8, NULL, NULL, NULL, NULL, NULL);
+    void SQLiteHandler::deleteFunction(const std::string name) {
+        sqlite3_create_function_v2(db.get(), name.c_str(), NULL, SQLITE_UTF8, NULL, NULL, NULL, NULL, NULL);
     }
 
     int SQLiteHandler::changes() {
@@ -157,7 +157,7 @@ namespace SQLiter {
         return sqlite3_errcode(db.get());
     }
 
-    const char *SQLiteHandler::errorMsg() {
+    const std::string SQLiteHandler::errorMsg() {
         return sqlite3_errmsg(db.get());
     }
 }

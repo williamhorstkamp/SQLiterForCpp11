@@ -37,9 +37,9 @@
 
 namespace SQLiter {
 
-    StatementHandler::StatementHandler(sqlite3 *db, const char *stmtStr) {
+    StatementHandler::StatementHandler(sqlite3 *db, const std::string stmtStr) {
         sqlite3_stmt *prepStmt;
-        sqlite3_prepare_v2(db, stmtStr, strlen(stmtStr), &prepStmt, nullptr);
+        sqlite3_prepare_v2(db, stmtStr.c_str(), strlen(stmtStr.c_str()), &prepStmt, nullptr);
         stmt = std::unique_ptr<sqlite3_stmt, Closesqlite3_stmt>(prepStmt);
     }
 
@@ -49,8 +49,8 @@ namespace SQLiter {
         stmt.reset();
     }
 
-    void StatementHandler::bind(const int var, const char *input) {
-        sqlite3_bind_text(stmt.get(), var, input, strlen(input), SQLITE_TRANSIENT);
+    void StatementHandler::bind(const int var, const std::string input) {
+        sqlite3_bind_text(stmt.get(), var, input.c_str(), strlen(input.c_str()), SQLITE_TRANSIENT);
     }
 
     void StatementHandler::bind(const int var, const int input) {
@@ -78,25 +78,25 @@ namespace SQLiter {
         return sqlite3_column_bytes(stmt.get(), column);
     }
 
-    std::string StatementHandler::getString(const int column) {
+    const std::string StatementHandler::getString(const int column) {
         if (getType(column) == SQLITE_TEXT) {
-            return std::string((char *)sqlite3_column_text(stmt.get(), column));
+            return std::string((const char*)sqlite3_column_text(stmt.get(), column));
         } throw SQLiteException("Column doesn't contain a string");
     }
 
-    int StatementHandler::getInt(const int column) {
+    const int StatementHandler::getInt(const int column) {
         if (getType(column) == SQLITE_INTEGER) {
             return sqlite3_column_int(stmt.get(), column);
         } throw SQLiteException("Column doesn't contain a int");
     }
 
-    sqlite3_int64 StatementHandler::getInt64(const int column) {
+    const sqlite3_int64 StatementHandler::getInt64(const int column) {
         if (getType(column) == SQLITE_INTEGER) {
             return sqlite3_column_int64(stmt.get(), column);
         } throw SQLiteException("Column doesn't contain a int");
     }
 
-    double StatementHandler::getDouble(const int column) {
+    const double StatementHandler::getDouble(const int column) {
         if (getType(column) == SQLITE_FLOAT) {
             return sqlite3_column_double(stmt.get(), column);
         } throw SQLiteException("Column doesn't contain a float");
@@ -108,11 +108,11 @@ namespace SQLiter {
         } throw SQLiteException("Column doesn't contain a blob");
     }
 
-    ValueHandler StatementHandler::getColumn(const int column) {
+    const ValueHandler StatementHandler::getColumn(const int column) {
         return ValueHandler(stmt.get(), column);
     }
 
-    bool StatementHandler::step() {
+    const bool StatementHandler::step() {
         return (sqlite3_step(stmt.get()) == SQLITE_ROW);
     }
 
@@ -124,27 +124,27 @@ namespace SQLiter {
         sqlite3_clear_bindings(stmt.get());
     }
 
-    int StatementHandler::columnCount() {
+    const int StatementHandler::columnCount() {
         return sqlite3_column_count(stmt.get());
     }
 
-    const char *StatementHandler::databaseName(const int col) {
+    const std::string StatementHandler::databaseName(const int col) {
         return sqlite3_column_database_name(stmt.get(), col);
     }
 
-    const char *StatementHandler::tableName(const int col) {
+    const std::string StatementHandler::tableName(const int col) {
         return sqlite3_column_table_name(stmt.get(), col);
     }
 
-    const char *StatementHandler::columnName(const int col) {
+    const std::string StatementHandler::columnName(const int col) {
         return sqlite3_column_origin_name(stmt.get(), col);
     }
 
-    void StatementHandler::setInputAlias(const char *alias, const int colNum) {
-        inputAlias.insert(std::pair<const char*, int>(alias, colNum));
+    void StatementHandler::setInputAlias(const std::string alias, const int colNum) {
+        inputAlias.insert(std::pair<std::string, int>(alias, colNum));
     }
 
-    void StatementHandler::setOutputAlias(const char *alias, const int colNum) {
-        outputAlias.insert(std::pair<const char*, int>(alias, colNum));
+    void StatementHandler::setOutputAlias(const std::string alias, const int colNum) {
+        outputAlias.insert(std::pair<std::string, int>(alias, colNum));
     }
 }

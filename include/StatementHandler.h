@@ -5,7 +5,7 @@
  *  with the bonus of providing a convenient interface
  *
  *  @author William Horstkamp
- *  @version 0.8
+ *  @version 0.9
  */
 
 #include <sqlite3.h>
@@ -39,8 +39,8 @@ namespace SQLiter {
     private:
 
         std::unique_ptr<sqlite3_stmt, Closesqlite3_stmt> stmt;
-        std::map<const char *, int> inputAlias;
-        std::map<const char *, int> outputAlias;
+        std::map<const std::string , int> inputAlias;
+        std::map<const std::string , int> outputAlias;
     public:
 
         /**
@@ -52,7 +52,7 @@ namespace SQLiter {
         *  @return - StatementHandler containing a unique_ptr that is managing
         *      a prepared statement that is ready to be bound
         */
-        StatementHandler(sqlite3 *db, const char *stmtStr);
+        StatementHandler(sqlite3 *db, const std::string stmtStr);
 
         /**
          *  Default Destructor cleans up our sqlite3_stmt unique_ptr and clears
@@ -86,13 +86,13 @@ namespace SQLiter {
 
         /**
          *  Binds the variable in a given position of the prepared statement
-         *  to a char * as input.
+         *  to a std::string  as input.
          *
          *  @param var - Input column as int
          *      Begins with 1, as per the SQLite standard
          *  @param input - pointer to C string to bind
          */
-        void bind(const int var, const char *input);
+        void bind(const int var, const std::string input);
 
         /**
          *  Binds the variable in a given position of the prepared statement
@@ -134,12 +134,12 @@ namespace SQLiter {
 
         /**
          *  Binds the variable with a given alias in the prepared statement
-         *  to a char * as input.
+         *  to a std::string  as input.
          *
          *  @param var - the alias of the prepared statement that the input is for.
          *  @param input - pointer to C string to bind
          */
-        inline void bind(const char *var, const char *input) {
+        inline void bind(const std::string var, const std::string input) {
             bind(inputAlias.at(var), input);
         }
 
@@ -150,7 +150,7 @@ namespace SQLiter {
          *  @param var - the alias of the prepared statement that the input is for
          *  @param input - int to bind
          */
-        inline void bind(const char *var, const int input) {
+        inline void bind(const std::string var, const int input) {
             bind(inputAlias.at(var), input);
         }
 
@@ -161,7 +161,7 @@ namespace SQLiter {
          *  @param var - the alias of the prepared statement that the input is for
          *  @param input - double to bind
          */
-        inline void bind(const char *var, const double input) {
+        inline void bind(const std::string var, const double input) {
             bind(inputAlias.at(var), input);
         }
 
@@ -172,7 +172,7 @@ namespace SQLiter {
          *  @param var - the alias of the prepared statement that the input is for
          *  @param input - blob to bind
          */
-        inline void bind(const char *var, const void *input, const int size) {
+        inline void bind(const std::string var, const void *input, const int size) {
             bind(inputAlias.at(var), input, size);
         }
 
@@ -183,7 +183,7 @@ namespace SQLiter {
          *  @param var - the alias of the prepared statement that is to be
          *      set to null
          */
-        inline void bindNull(const char *var) {
+        inline void bindNull(const std::string var) {
             sqlite3_bind_null(stmt.get(), inputAlias.at(var));
         }
 
@@ -221,7 +221,7 @@ namespace SQLiter {
          *      containing resultant text for a given column or nullptr if column
          *      contains null
          */
-        std::string getString(const int column);
+        const std::string getString(const int column);
 
         /**
          *  Returns an integer in the specified column of the result of the
@@ -234,7 +234,7 @@ namespace SQLiter {
          *
          *  @return int - integer value
          */
-        int getInt(const int column);
+        const int getInt(const int column);
 
         /**
          *  Returns an SQLite3 int64 in the specified column of the result of the
@@ -247,7 +247,7 @@ namespace SQLiter {
          *
          *  @return int - sqlite3_int64 value
          */
-        sqlite3_int64 getInt64(const int column);
+        const sqlite3_int64 getInt64(const int column);
 
         /**
          *  Returns a double precision float in the specified column of the
@@ -260,7 +260,7 @@ namespace SQLiter {
          *
          *  @return double - double value
          */
-        double getDouble(const int column);
+        const double getDouble(const int column);
 
         /**
          *  Returns a blob in the specified column of the
@@ -288,7 +288,7 @@ namespace SQLiter {
          *
          *  @return - ValueHandler that wraps an SQLite3 value
          */
-        ValueHandler getColumn(const int column);
+        const ValueHandler getColumn(const int column);
 
         /**
          *  Gives the return type of a resultant column as integer.
@@ -299,7 +299,7 @@ namespace SQLiter {
          *      Possible results: 1 - INT, 2 - FLOAT, 3 - TEXT, 4 - BLOB, 5 - NULL
          *      0 - ERROR
          */
-        inline const int getType(const char *column) {
+        inline const int getType(const std::string column) {
             return getType(outputAlias.at(column));
         }
 
@@ -311,7 +311,7 @@ namespace SQLiter {
          *  @return - Integer representing the size of the value currently in the
          *      the column, in bytes.
          */
-        inline const int getSize(const char *column) {
+        inline const int getSize(const std::string column) {
             return getSize(outputAlias.at(column));
         }
 
@@ -328,7 +328,7 @@ namespace SQLiter {
          *      containing resultant text for a given column or nullptr if column
          *      contains null
          */
-        inline std::string getString(const char *column) {
+        inline std::string getString(const std::string column) {
             return getString(outputAlias.at(column));
         }
 
@@ -343,7 +343,7 @@ namespace SQLiter {
          *
          *  @return int - integer value
          */
-        inline int getInt(const char *column) {
+        inline int getInt(const std::string column) {
             return getInt(outputAlias.at(column));
         }
 
@@ -358,7 +358,7 @@ namespace SQLiter {
          *
          *  @return int - sqlite3_int64 value
          */
-        inline sqlite3_int64 getInt64(const char *column) {
+        inline sqlite3_int64 getInt64(const std::string column) {
             return getInt64(outputAlias.at(column));
         }
 
@@ -373,7 +373,7 @@ namespace SQLiter {
          *
          *  @return double - double value
          */
-        inline double getDouble(const char *column) {
+        inline double getDouble(const std::string column) {
             return getDouble(outputAlias.at(column));
         }
 
@@ -388,7 +388,7 @@ namespace SQLiter {
          *
          *  @return - pointer to blob
          */
-        inline const void *getBlob(const char *column) {
+        inline const void *getBlob(const std::string column) {
             return getBlob(outputAlias.at(column));
         }
 
@@ -405,7 +405,7 @@ namespace SQLiter {
          *
          *  @return - ValueHandler that wraps an SQLite3 value
          */
-        inline ValueHandler getColumn(const char *column) {
+        inline ValueHandler getColumn(const std::string column) {
             return getColumn(outputAlias.at(column));
         }
 
@@ -417,7 +417,7 @@ namespace SQLiter {
          *      will cause a loss of these results if they are not read using one
          *      of the column readers.
          */
-        bool step();
+        const bool step();
 
         /**
          *  Resets the prepared statement so it is ready to executed again.
@@ -438,7 +438,7 @@ namespace SQLiter {
          *
          *  @return - number of columns returned by the statement
          */
-        int columnCount();
+        const int columnCount();
 
         /**
          *  Returns the name of the database the statement column is from.
@@ -448,7 +448,7 @@ namespace SQLiter {
          *  @return - Pointer to null terminated C String containing database
          *      name.
          */
-        const char *databaseName(const int col);
+        const std::string databaseName(const int col);
 
         /**
          *  Returns the name of the table the statement column is from.
@@ -458,7 +458,7 @@ namespace SQLiter {
          *  @return - Pointer to null terminated C String containing name of
          *      the table.
          */
-        const char *tableName(const int col);
+        const std::string tableName(const int col);
 
         /**
          *  Returns the name of the column the statement column is from.
@@ -470,7 +470,7 @@ namespace SQLiter {
          *  @return - Pointer to null terminated C String containing column
          *      name.
          */
-        const char *columnName(const int col);
+        const std::string columnName(const int col);
 
         /**
          *  Returns the name of the database the statement column is from
@@ -480,7 +480,7 @@ namespace SQLiter {
          *  @return - Pointer to null terminated C String containing database
          *      name.
          */
-        inline const char *databaseName(const char *col) {
+        inline const std::string databaseName(const std::string col) {
             return databaseName(outputAlias.at(col));
         }
 
@@ -492,7 +492,7 @@ namespace SQLiter {
          *  @return - Pointer to null terminated C String containing name of
          *      the table.
          */
-        inline const char *tableName(const char *col) {
+        inline const std::string tableName(const std::string col) {
             return tableName(outputAlias.at(col));
         }
 
@@ -506,7 +506,7 @@ namespace SQLiter {
          *  @return - Pointer to null terminated C String containing column
          *      name.
          */
-        inline const char *columnName(const char *col) {
+        inline const std::string columnName(const std::string col) {
             return columnName(outputAlias.at(col));
         }
 
@@ -518,7 +518,7 @@ namespace SQLiter {
          *  @param colNum - Integer representing the input column to bind to
          *      the alias
          */
-        void setInputAlias(const char *alias, const int colNum);
+        void setInputAlias(const std::string alias, const int colNum);
 
         /**
          *  Binds an output column to an alias.
@@ -528,6 +528,6 @@ namespace SQLiter {
          *  @param colNum - Integer representing the output column to bind to
          *      the alias
          */
-        void setOutputAlias(const char *alias, const int colNum);
+        void setOutputAlias(const std::string alias, const int colNum);
     };
 }
