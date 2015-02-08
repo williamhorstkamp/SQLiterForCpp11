@@ -42,18 +42,20 @@ namespace SQLiter {
         db.reset();
     }
 
-    void SQLiteHandler::createDatabase(const char *location) {
-        sqlite3 *connection = nullptr;
-        if (location = nullptr) {
-            result(sqlite3_open(nullptr, &connection));
-            db.reset(connection);
-        }
-        else if (!fileExists(location)) {
+    void SQLiteHandler::createDatabase(const char *location) {  
+       if (!fileExists(location)) {
+            sqlite3 *connection = nullptr;
             result(sqlite3_open(location, &connection));
             db.reset(connection);
         } else {
             throw SQLiteException("File Already Exists");
         }
+    }
+
+    void SQLiteHandler::createDatabase() {
+        sqlite3 *connection = nullptr;
+        result(sqlite3_open(nullptr, &connection));
+        db.reset(connection);
     }
 
     void SQLiteHandler::openDatabase(const char *location) {
@@ -75,6 +77,28 @@ namespace SQLiter {
         sqlite3 *connection = nullptr;
         result(sqlite3_open(location, &connection));
         db.reset(connection);
+    }
+
+    void SQLiteHandler::load(const char *location) {
+        sqlite3 *connection = nullptr;
+        sqlite3_open(location, &connection);
+        sqlite3_backup *backup = sqlite3_backup_init(db.get(), "main", connection, "main");
+        if (backup) {
+            sqlite3_backup_step(backup, -1);
+            sqlite3_backup_finish(backup);
+        }
+        sqlite3_close(connection);
+    }
+
+    void SQLiteHandler::save(const char *location) {
+        sqlite3 *connection = nullptr;
+        sqlite3_open(location, &connection);
+        sqlite3_backup *backup = sqlite3_backup_init(connection, "main", db.get(), "main");
+        if (backup) {
+            sqlite3_backup_step(backup, -1);
+            sqlite3_backup_finish(backup);
+        }
+        sqlite3_close(connection);
     }
 
     StatementHandler *SQLiteHandler::prepareStatement(const char *key, const char *stmtStr) {

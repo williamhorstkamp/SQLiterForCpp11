@@ -74,18 +74,22 @@ namespace SQLiter {
         ~SQLiteHandler();
 
         /**
-         *  Creates a new SQLite3 database at a given path and opens it, if a
-         *  nullptr is given instead of a name, the datase will be place in memory
+         *  Creates a new SQLite3 database at a given path and opens it.
          *
          *  @param location - Location on disk to create the SQLite3 database.
          *      Any file extension may be used as SQLite3 does not have a default
          *      extension.
-         *      If nullptr is entered instead of a pointer to a location on disk,
-         *      the database will instead be created solely in memory
          *
          *  @return - SQLiteHandler object managing the database referenced
          */
         void createDatabase(const char *location);
+
+        /**
+         *  Creates a new SQLite3 database in memory.
+         *
+         *  @return - SQLiteHandler object managing the database referenced
+         */
+        void createDatabase();
 
         /**
          *  Open the database file at a given path
@@ -112,6 +116,22 @@ namespace SQLiter {
         *  @return -SQLiteHandler object managing the database referenced
         */
         void forceOpenDatabase(const char *location);
+
+        /**
+         *  Loads a file from the disk into the open database.
+         *
+         *  @param location - C string representing the location on disk of the
+         *      file
+         */
+        void load(const char *location);
+
+        /**
+        *  Saves a file to the disk from the open database.
+        *
+        *  @param location - C string representing the location on disk of the
+        *      file
+        */
+        void save(const char *location);
 
         /**
          *  Inline helper function checks if a file exists or not using stat()
