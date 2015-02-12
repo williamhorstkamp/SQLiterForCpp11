@@ -3,7 +3,6 @@
 *  Provides a portable SQLite3 interface to be used with the StatementHandler
 *
 *  @author William Horstkamp
-*  @version 0.8
 */
 
 /**
@@ -80,25 +79,37 @@ namespace SQLiter {
     }
 
     void SQLiteHandler::load(const std::string location) {
-        sqlite3 *connection = nullptr;
-        sqlite3_open(location.c_str(), &connection);
-        sqlite3_backup *backup = sqlite3_backup_init(db.get(), "main", connection, "main");
-        if (backup) {
-            sqlite3_backup_step(backup, -1);
-            sqlite3_backup_finish(backup);
+        if (fileExists(location)) {
+            sqlite3 *file;
+            sqlite3 *connection;
+            result(sqlite3_open(location.c_str(), &file));
+            result(sqlite3_open(nullptr, &connection));
+            db.reset(connection);
+            sqlite3_backup *backup = sqlite3_backup_init(db.get(), "main", file, "main");
+            if (backup) {
+                result(sqlite3_backup_step(backup, -1));
+                result(sqlite3_backup_finish(backup));
+            }
+            sqlite3_close(file);
+        } else {
+            throw SQLiteException("File Does Not Exist");
         }
-        sqlite3_close(connection);
     }
 
     void SQLiteHandler::save(const std::string location) {
-        sqlite3 *connection = nullptr;
-        sqlite3_open(location.c_str(), &connection);
-        sqlite3_backup *backup = sqlite3_backup_init(connection, "main", db.get(), "main");
-        if (backup) {
-            sqlite3_backup_step(backup, -1);
-            sqlite3_backup_finish(backup);
+        if (db.get() != nullptr) {
+            sqlite3 *connection = nullptr;
+            sqlite3_open(location.c_str(), &connection);
+            sqlite3_backup *backup = sqlite3_backup_init(connection, "main", db.get(), "main");
+            if (backup) {
+                result(sqlite3_backup_step(backup, -1));
+                result(sqlite3_backup_finish(backup));
+            }
+            sqlite3_close(connection);
+        } else {
+            throw SQLiteException("No Database Is Open");
         }
-        sqlite3_close(connection);
+        
     }
 
     StatementHandler *SQLiteHandler::prepareStatement(const std::string key, const std::string stmtStr) {
@@ -124,25 +135,27 @@ namespace SQLiter {
     }
 
     void SQLiteHandler::result(const int resCode) {
-        if (resCode != SQLITE_OK)
+        if (resCode != SQLITE_OK && resCode != SQLITE_DONE)
             throw SQLiteException(sqlite3_errmsg(db.get()));
     }
 
     void SQLiteHandler::scalarFunction(const std::string name, int nArg, void *pApp,
         void(*xFunc)(sqlite3_context*, int, sqlite3_value**),
         void(*xDestroy)(void*)) {
-        sqlite3_create_function_v2(db.get(), name.c_str(), nArg, SQLITE_UTF8, pApp, xFunc, NULL, NULL, xDestroy);
+        result(sqlite3_create_function_v2(db.get(), name.c_str(), nArg, SQLITE_UTF8, pApp, xFunc, NULL, NULL, xDestroy));
     }
 
     void SQLiteHandler::aggregateFunction(const std::string name, int nArg, void *pApp,
         void(*xStep)(sqlite3_context*, int, sqlite3_value**),
         void(*xFinal)(sqlite3_context*),
         void(*xDestroy)(void*)) {
-        sqlite3_create_function_v2(db.get(), name.c_str(), nArg, SQLITE_UTF8, pApp, NULL, xStep, xFinal, xDestroy);
+        result(sqlite3_create_function_v2(db.get(), name.c_str(), nArg,
+            SQLITE_UTF8, pApp, NULL, xStep, xFinal, xDestroy));
     }
 
     void SQLiteHandler::deleteFunction(const std::string name) {
-        sqlite3_create_function_v2(db.get(), name.c_str(), NULL, SQLITE_UTF8, NULL, NULL, NULL, NULL, NULL);
+        result(sqlite3_create_function_v2(db.get(), name.c_str(), NULL,
+            SQLITE_UTF8, NULL, NULL, NULL, NULL, NULL));
     }
 
     int SQLiteHandler::changes() {

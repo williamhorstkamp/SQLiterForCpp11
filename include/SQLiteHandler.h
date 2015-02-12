@@ -3,7 +3,6 @@
  *  Provides a portable SQLite3 interface to be used with the StatementHandler
  *
  *  @author William Horstkamp
- *  @version .9
  */
 #include <sqlite3.h>
 #include <string>
