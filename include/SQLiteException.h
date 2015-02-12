@@ -3,7 +3,6 @@
  *  Simple exception object to be used by the rest of the library.
  *
  *  @author William Horstkamp
- *  @version 1.0
  */
 
 #include <stdexcept>

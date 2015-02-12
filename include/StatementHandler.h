@@ -5,7 +5,6 @@
  *  with the bonus of providing a convenient interface
  *
  *  @author William Horstkamp
- *  @version 0.9
  */
 
 #include <sqlite3.h>

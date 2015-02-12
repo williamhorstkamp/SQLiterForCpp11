@@ -5,7 +5,6 @@
  *  dynamic typing.
  *
  *  @author William Horstkamp
- *  @version 1.0
  */
 
 #include <sqlite3.h>
