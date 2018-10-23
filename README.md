@@ -8,7 +8,7 @@ to successfully use the wrapper.
 In addition to this, SQLiter For C++11 replaces the need to learn the numerous SQLite3
 constructor and destructor functions with a predictable object oriented approach.
 
-##SQLite?
+## SQLite?
 SQLite3 is a simple and widely deployed relational database engine that is suitable for a wide
 range of projects. While SQLite is a powerful platform with a complete C/C++ interface, the interface
 doesn't utilize newer C++ functions, a problem which SQLiter seeks to remedy.  
@@ -16,7 +16,7 @@ An SQLite3 installation is required for SQLiter to function.
 SQLite can be found at http://www.sqlite.org/  
 
 
-##Installation
+## Installation
 An installation requires at least STL and SQLite3.  
 SQLite3 can be included into a project in a number of ways, including by adding its source to the project or using
 it as a library, and the choice is up to the user and is currently beyond the scope of this installation guide.  
@@ -25,11 +25,11 @@ The easiest installation scenario involves placing the header and source files i
 the directory you are already using in your project and simply using the namespace SQLiter
 while compiling and linking against the standard SQLite3 library.  
 
-##Example
+## Example
 The example can be compiled using any number of public C++11 toolkits. (GNU, Visual Studio, LLVM)  
 Solutions and makefiles TBA
 
-##Copyright Stuff
+## Copyright Stuff
 Copyright (c) 2015 William Horstkamp  
 william.horstkamp@gmail.com  
 MIT LICENSE  
